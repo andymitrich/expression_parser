@@ -113,7 +113,7 @@ class Parser
                 'tag' => $expression,
                 'options' => array()
             );
-            return $this;
+            return $this->getSuccess();
         }
 
         list($operand, $stringOptions) = explode($this->getOperandDelimiter(), $expression, 2);
@@ -155,7 +155,7 @@ class Parser
             'tag' => $operand,
             'options' => $options
         );
-        return $this;
+        return $this->getSuccess();
     }
 
     /**
@@ -268,6 +268,12 @@ class Parser
                 throw new Exception('Function parsing error: the number of parameters is not valid');
             }
 
+            /** Exclamation mark processing */
+            if (substr($option, 0, 1) == "!") {
+                $hasExclamation = true;
+                $option = substr($option, 1);
+            }
+
             $optionNameHash = md5($option);
             $optionName = (isset($this->synonyms[$optionNameHash])) ? $this->synonyms[$optionNameHash] : $option;
             return array(
@@ -377,6 +383,18 @@ class Parser
         $this->comment = $message;
         $this->data = array();
         return $this;
+    }
+
+    /**
+     * Return success result
+     */
+    private function getSuccess()
+    {
+        return array(
+            'status' => $this->status,
+            'data' => $this->data,
+            'comment' => $this->comment
+        );
     }
 
     /**
