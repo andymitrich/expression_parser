@@ -245,29 +245,25 @@ class Parser
                 $option = substr($option, 1);
             }
 
-            if (sizeof($this->allowOptions) && !in_array($option, array_keys($this->allowOptions))) {
-                /** @breakpoint */
-                throw new Exception('Function parsing error: illegal function');
-            }
-
             $optionNameHash = md5($option);
             $optionName = (isset($this->synonyms[$optionNameHash])) ? $this->synonyms[$optionNameHash] : $option;
+
+            if (sizeof($this->allowOptions) && !in_array($optionName, array_keys($this->allowOptions))) {
+                /** @breakpoint */
+                throw new Exception('Function parsing error: function is not allowable');
+            }
+
+            if (sizeof($this->optionsCounter[$optionName]) && $this->optionsCounter[$optionName] > 0) {
+                /** @breakpoint */
+                throw new Exception('Function parsing error: the number of parameters is not valid');
+            }
+
             return array(
                 'name' => $optionName,
                 'hasExclamation' => $hasExclamation,
                 'parameters' => $this->processOptionParameters($stringParameters, $option)
             );
         } else {
-            if (sizeof($this->allowOptions) && !in_array($option, array_keys($this->allowOptions))) {
-                /** @breakpoint */
-                throw new Exception('Function parsing error: illegal function');
-            }
-
-            if (sizeof($this->optionsCounter[$option]) && $this->optionsCounter[$option] > 0) {
-                /** @breakpoint */
-                throw new Exception('Function parsing error: the number of parameters is not valid');
-            }
-
             /** Exclamation mark processing */
             if (substr($option, 0, 1) == "!") {
                 $hasExclamation = true;
@@ -276,6 +272,17 @@ class Parser
 
             $optionNameHash = md5($option);
             $optionName = (isset($this->synonyms[$optionNameHash])) ? $this->synonyms[$optionNameHash] : $option;
+
+            if (sizeof($this->allowOptions) && !in_array($optionName, array_keys($this->allowOptions))) {
+                /** @breakpoint */
+                throw new Exception('Function parsing error: function is not allowable');
+            }
+
+            if (sizeof($this->optionsCounter[$optionName]) && $this->optionsCounter[$optionName] > 0) {
+                /** @breakpoint */
+                throw new Exception('Function parsing error: the number of parameters is not valid');
+            }
+
             return array(
                 'name' => $optionName,
                 'hasExclamation' => $hasExclamation,
@@ -379,10 +386,11 @@ class Parser
      */
     private function getError($message)
     {
-        $this->status = self::STATUS_FAILURE;
-        $this->comment = $message;
-        $this->data = array();
-        return $this;
+        return array(
+            'status' => self::STATUS_FAILURE,
+            'comment' => $message,
+            'data' => array()
+        );
     }
 
     /**
